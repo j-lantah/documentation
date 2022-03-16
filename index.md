@@ -138,7 +138,63 @@ void main() async {
 
 - #### Location Service
 
-  test
+  Location Service ini di fungsikan untuk mendapatkan data Lokasi terkini dari **Google Map API**, dapat di lihat dalam file **splashscreen.dart** ada sebuah fungsi yang di tujukan untuk membuat insialisasi terhadap Location Service.
+
+  ```dart
+  void initState() {
+    locationService();
+
+    ///dan berikutnya
+  }
+  ```
+
+  di dalam fungsi ini memiliki komponen seperti
+
+  ```dart
+  _serviceEnabled = await location.serviceEnabled();
+  ```
+  yang di gunakan untuk memeriksa apakah location service dari device sudah nyala atau tidak.
+
+  lalu selanjutnya ada
+
+  ```dart
+  if(!_serviceEnabled){
+    _serviceEnabled = await location.requestService();
+    if(!_serviceEnabled) return;
+  }
+  ```
+
+  ini digunakan untuk mengecek jika service belum di nyalakan maka kita akan meminta request untuk aktivasi location service dari device.
+
+  lalu selanjutnya ada
+
+  ```dart
+  _permissionGranted = await location.hasPermission();
+  ```
+
+  komponen ini ditujukan untuk mendapatkan permission dari user apakah mereka menyetujui akses ke location service atau tidak.
+
+  jika akses granted maka kita harus mendapatkan location data dengan cara
+
+  ```dart
+  _locationData = await location.getLocation();
+  ```
+
+  lalu location data tersebut dapat kita gunakan untuk mendapatkan value latitude dan juga longitude yang nantinya akan di simpan ke dalam **Local Storage Service / Local Cache**.
+
+  ```dart
+  saveLatLong(_locationData.latitude, _locationData.longitude);
+  ```
+
+  lalu jika semua hal diatas berhasil di lakukan maka komponen terakhir adalah
+
+  ```dart
+  location.onLocationChanged.listen((event) {
+    saveLatLong(event.latitude!, event.longitude!);
+  });
+  ```
+  yang nantinya dimana semua perubahaan lokasi dari user akan di listen oleh fungsi **onLocationChanged** dan akan di masukan ke dalam **Local Storage Service / Local Cache** tadi.
+
 
 ### Autentikasi
 
