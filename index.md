@@ -1,4 +1,4 @@
-# Dokumentasi Aplikasi j-lantah
+# Dokumentasi Aplikasi j-lantah & mitra j-lantah
 
 ## Memulai
 
@@ -6,6 +6,7 @@
 - [Inisialisasi firebase service](#inisialisasi-firebase-service)
   - [Notification Service](#notification-service)
   - [Location Service](#location-service)
+- [Komponen Modular](#modular-basic)
 - [Autentikasi](#autentikasi)
   - [Register](#register)
   - [Login](#login)
@@ -195,18 +196,83 @@ void main() async {
   ```
   yang nantinya dimana semua perubahaan lokasi dari user akan di listen oleh fungsi **onLocationChanged** dan akan di masukan ke dalam **Local Storage Service / Local Cache** tadi.
 
+### Komponen Modular
+**Modular** adalah sebuah package yang digunakan untuk mengatur semua routing dan Navigasi di dalam App, semua route akan tersimpan di setiap masing masing module screen.
+
+di dalam dokumentasi ini hanya akan di bahas beberapa tipe Navigasi yang menggunakan Modular, Untuk lebih lengkapnya bisa di lihat pada [Flutter Official Modular Documentation](https://modular.flutterando.com.br/docs/flutter_modular/start/).
+
+ini beberapa jenis Navigasi yang menggunakan Modular
+
+```dart
+Modular.to.push(route); 
+///dengan fungsi ini kita dapat melakukan navigasi dengan menggunakan sistem Route
+///yang di sediakan oleh flutter seperti MaterialPageRoute ataupun CupertinoPageRoute
+///tanpa harus menggunakan Named Route.
+
+Modular.to.pushNamed('/nama-route-kamu/');
+///dengan fungsi ini kita dapat melakukan navigasi dengan menggunakan sistem named route
+///sistem ini sangat memudahkan kita karena tidak perlu memanggil nama class Screen yang akan
+///kita panggil untuk melakukan navigasi, cukup dengan menuliskan nama route nya saja yang sudah
+///tersimpan di dalam file Module.
+
+Modular.to.pushNamedAndRemoveUntil('/nama-route-yang-akan-di-panggil/', ModalRoute.withName('/nama-route-yang-akan-di-cek'));
+///fungsi ini sangat berguna jika kita ingin melakukan navigasi ke halaman berikutnya tapi kita juga ingin
+///menghapus seluruh navigasi sebelumnya hingga screen yang akan di cek dan menghasilkan value true.
+
+Modular.to.pop();
+///fungsi ini berguna untuk melakukan aksi kembali ke screen sebelumnya.
+
+```
 
 ### Autentikasi
 
-test
+Semua hal yang bersangkutan dengan aktivitas autentikasi ada di dalam file **auth_screen.dart**
 
-```dart
-This is for code block
+dan di dalam file ini terdapat beberapa komponen yang sangat penting untuk aktivitas autentikasi seperti Login dan juga Register atau pun user juga dapat melewati alur autentikasi dengan menekan tombol skip.
 
-void main() {
+  - #### Skip
+    Dengan user memilih tombol skip maka seluruh alur autentikasi ditiadakan dan nantinya semua pemanggilan API yang membutuhkan token autentikasi akan di hentikan dan hanya API yang tidak membutuhkan token saja yang dapat berjalan seperti API News dan semua tutorial penggunaan app di menu home.
 
-}
-```
+    kita harus menyimpan value **isSkip** ke dalam **Local Storage Service / Local Cache** supaya nantinya bisa di gunakan ketika screen sudah berpindah ke home screen.
+
+    jika value **isSkip** sudah tersimpan maka proses setelah itu adalah melakukan navigasi ke halaman home.
+
+    ```dart
+    LocalStorageService.save("isSkip", true).then((value) {
+      Modular.to.pushNamedAndRemoveUntil('/home/', ModalRoute.withName('/auth/'));
+    })
+    ```
+
+  - #### Login
+    Pada file **login_screen.dart** terdapat form **Username** dan **Password**, kedua form ini masing - masing memiliki controller yang nantinya digunakan untuk menyimpan value hasil dari input user.
+
+    Sebelum melakukan proses login, pertama sebuah fungsi validasi akan di panggil untuk mengecek apakah seluruh form yang wajib di isi sudah terisi semua tau belum, Jika sudah terisi semua maka proses login dapat di lanjutkan, jika belum maka akan memunculkan **FlushBar** warning dengan pesan yang akan mengingatkan user bahwa masih ada form yang belum di isi.
+
+    ```dart
+    if(phoneController.text.isNotEmpty && passwordController.text.isNotEmpty) {
+      //proses login
+    } else {
+      //munculkan warning
+    }
+    ```
+
+    Jika hasilnya adalah true maka proses login akan berlanjut dengan memanggil service login
+
+    ```dart
+    authServices.userLogin(context, phoneNumber: phoneController.text, password: passwordController.text);
+    ```
+    di dalam fungsi ini kita melakukan proses login yang membutuhkan phoneController dan passwordController yang nantinya akan di kirim ke dalam field API dan context saat ini untuk memunculkan warning dari **dio**, setelah itu API akan melakukan proses validasi dan pada akhirnya API memberikan result yang akan di gunakan untuk mengecek apakah validasi berhasil atau gagal.
+
+    ```dart
+    if(authServices.getMessage()["status"] == "success") {
+      //jika status sukses
+    } else {
+      //jika status gagal
+    }
+    ```
+    
+
+  - #### Register
 
 ### Data poin dan liter minyak
 
