@@ -270,7 +270,45 @@ dan di dalam file ini terdapat beberapa komponen yang sangat penting untuk aktiv
       //jika status gagal
     }
     ```
-    
+    Jika status sama dengan sukses maka proses login akan berlanjut, di sini kita akan menyimpan semua latitude dan longitude dari lokasi user ke dalam variable yang nantinya akan di kirimkan ke backend melalui API **updateUserLocation**.
+
+    ```dart
+    double latitude = await LocalStorageService.load("latitude");
+    double longitude = await LocalStorageService.load("longitude");
+
+    await RestApiService.updateUserLocation(
+      latitude: latitude.toString(),
+      longitude: longitude.toString(),
+    );
+    ```
+
+    jika data latitude dan longitude sudah terkirim maka selanjutnya adalah memasukan value isSkip bernilai false ke dalam **Local Storage Service / Local Cache** karena kita telah sukses melakukan proses login. setelah value isSkip berhasil di masukan maka selanjutnya adalah melakukan navigasi ke halaman selanjutnya.
+
+    ```dart
+    LocalStorageService.save("isSkip", false).then((value) {
+      if(value == true){
+        Modular.to.pushReplacementNamed('/auth/authSuccess');
+      }
+    });
+    ```
+
+    Lalu status tidak sama dengan sukses maka sebuah **FlushBar** akan muncul untuk membuat warning kepada user.
+
+    ```dart
+    UiUtils.errorMessage(
+      authServices.getMessage()["message"],
+      context
+    );
+    ```
+
+    Kemudian jika **phoneController** dan **passwordController** di antara kedua itu ada yang kosong, maka kita munculkan warning juga kepada user.
+
+    ```dart
+    UiUtils.errorMessage(
+      "Tolong isi semua form!",
+      context
+    );
+    ```
 
   - #### Register
 
