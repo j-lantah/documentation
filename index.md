@@ -103,39 +103,38 @@ void main() async {
 
   Full Code:
 
+```dart
+void notifInit() async {
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
 
-  ```dart
-  void notifInit() async {
-    FirebaseMessaging messaging = FirebaseMessaging.instance;
+  NotificationSettings settings = await messaging.requestPermission(
+    alert: true,
+    announcement: false,
+    badge: true,
+    carPlay: false,
+    criticalAlert: false,
+    provisional: false,
+    sound: true,
+  );
 
-    NotificationSettings settings = await messaging.requestPermission(
-      alert: true,
-      announcement: false,
-      badge: true,
-      carPlay: false,
-      criticalAlert: false,
-      provisional: false,
-      sound: true,
-    );
+  await notificationService.getFcmToken();
 
-    await notificationService.getFcmToken();
+  print(notificationService.token);
 
-    print(notificationService.token);
+  LocalStorageService.save("fcmToken", notificationService.token);
 
+  await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+      alert: true, badge: true, sound: true);
+
+  if (settings.authorizationStatus == AuthorizationStatus.authorized) {
     LocalStorageService.save("fcmToken", notificationService.token);
-
-    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
-        alert: true, badge: true, sound: true);
-
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      LocalStorageService.save("fcmToken", notificationService.token);
-    } else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
-      print('User granted provisional permission');
-    } else {
-      print('User declined or has not accepted permission');
-    }
+  } else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
+    print('User granted provisional permission');
+  } else {
+    print('User declined or has not accepted permission');
   }
-  ```
+}
+```
 
 - #### Location Service
 
@@ -154,6 +153,7 @@ void main() async {
   ```dart
   _serviceEnabled = await location.serviceEnabled();
   ```
+
   yang di gunakan untuk memeriksa apakah location service dari device sudah nyala atau tidak.
 
   lalu selanjutnya ada
@@ -194,9 +194,11 @@ void main() async {
     saveLatLong(event.latitude!, event.longitude!);
   });
   ```
+
   yang nantinya dimana semua perubahaan lokasi dari user akan di listen oleh fungsi **onLocationChanged** dan akan di masukan ke dalam **Local Storage Service / Local Cache** tadi.
 
 ### Komponen Modular
+
 **Modular** adalah sebuah package yang digunakan untuk mengatur semua routing dan Navigasi di dalam App, semua route akan tersimpan di setiap masing masing module screen.
 
 di dalam dokumentasi ini hanya akan di bahas beberapa tipe Navigasi yang menggunakan Modular, Untuk lebih lengkapnya bisa di lihat pada [Flutter Official Modular Documentation](https://modular.flutterando.com.br/docs/flutter_modular/start/).
@@ -204,7 +206,7 @@ di dalam dokumentasi ini hanya akan di bahas beberapa tipe Navigasi yang menggun
 ini beberapa jenis Navigasi yang menggunakan Modular
 
 ```dart
-Modular.to.push(route); 
+Modular.to.push(route);
 ///dengan fungsi ini kita dapat melakukan navigasi dengan menggunakan sistem Route
 ///yang di sediakan oleh flutter seperti MaterialPageRoute ataupun CupertinoPageRoute
 ///tanpa harus menggunakan Named Route.
@@ -230,87 +232,154 @@ Semua hal yang bersangkutan dengan aktivitas autentikasi ada di dalam file **aut
 
 dan di dalam file ini terdapat beberapa komponen yang sangat penting untuk aktivitas autentikasi seperti Login dan juga Register atau pun user juga dapat melewati alur autentikasi dengan menekan tombol skip.
 
-  - #### Skip
-    Dengan user memilih tombol skip maka seluruh alur autentikasi ditiadakan dan nantinya semua pemanggilan API yang membutuhkan token autentikasi akan di hentikan dan hanya API yang tidak membutuhkan token saja yang dapat berjalan seperti API News dan semua tutorial penggunaan app di menu home.
+- #### Skip
 
-    kita harus menyimpan value **isSkip** ke dalam **Local Storage Service / Local Cache** supaya nantinya bisa di gunakan ketika screen sudah berpindah ke home screen.
+  Dengan user memilih tombol skip maka seluruh alur autentikasi ditiadakan dan nantinya semua pemanggilan API yang membutuhkan token autentikasi akan di hentikan dan hanya API yang tidak membutuhkan token saja yang dapat berjalan seperti API News dan semua tutorial penggunaan app di menu home.
 
-    jika value **isSkip** sudah tersimpan maka proses setelah itu adalah melakukan navigasi ke halaman home.
+  kita harus menyimpan value **isSkip** ke dalam **Local Storage Service / Local Cache** supaya nantinya bisa di gunakan ketika screen sudah berpindah ke home screen.
 
-    ```dart
-    LocalStorageService.save("isSkip", true).then((value) {
-      Modular.to.pushNamedAndRemoveUntil('/home/', ModalRoute.withName('/auth/'));
-    })
-    ```
+  jika value **isSkip** sudah tersimpan maka proses setelah itu adalah melakukan navigasi ke halaman home.
 
-  - #### Login
-    Pada file **login_screen.dart** terdapat form **Username** dan **Password**, kedua form ini masing - masing memiliki controller yang nantinya digunakan untuk menyimpan value hasil dari input user.
+  ```dart
+  LocalStorageService.save("isSkip", true).then((value) {
+    Modular.to.pushNamedAndRemoveUntil('/home/', ModalRoute.withName('/auth/'));
+  })
+  ```
 
-    Sebelum melakukan proses login, pertama sebuah fungsi validasi akan di panggil untuk mengecek apakah seluruh form yang wajib di isi sudah terisi semua tau belum, Jika sudah terisi semua maka proses login dapat di lanjutkan, jika belum maka akan memunculkan **FlushBar** warning dengan pesan yang akan mengingatkan user bahwa masih ada form yang belum di isi.
+- #### Login
 
-    ```dart
-    if(phoneController.text.isNotEmpty && passwordController.text.isNotEmpty) {
-      //proses login
-    } else {
-      //munculkan warning
+  Pada file **login_screen.dart** terdapat form **Username** dan **Password**, kedua form ini masing - masing memiliki controller yang nantinya digunakan untuk menyimpan value hasil dari input user.
+
+  Sebelum melakukan proses login, pertama sebuah fungsi validasi akan di panggil untuk mengecek apakah seluruh form yang wajib di isi sudah terisi semua tau belum, Jika sudah terisi semua maka proses login dapat di lanjutkan, jika belum maka akan memunculkan **FlushBar** warning dengan pesan yang akan mengingatkan user bahwa masih ada form yang belum di isi.
+
+  ```dart
+  if(phoneController.text.isNotEmpty && passwordController.text.isNotEmpty) {
+    //proses login
+  } else {
+    //munculkan warning
+  }
+  ```
+
+  Jika hasilnya adalah true maka proses login akan berlanjut dengan memanggil service login
+
+  ```dart
+  authServices.userLogin(context, phoneNumber: phoneController.text, password: passwordController.text);
+  ```
+
+  di dalam fungsi ini kita melakukan proses login yang membutuhkan phoneController dan passwordController yang nantinya akan di kirim ke dalam field API dan context saat ini untuk memunculkan warning dari **dio**, setelah itu API akan melakukan proses validasi dan pada akhirnya API memberikan result yang akan di gunakan untuk mengecek apakah validasi berhasil atau gagal.
+
+  ```dart
+  if(authServices.getMessage()["status"] == "success") {
+    //jika status sukses
+  } else {
+    //jika status gagal
+  }
+  ```
+
+  Jika status sama dengan sukses maka proses login akan berlanjut, di sini kita akan menyimpan semua latitude dan longitude dari lokasi user ke dalam variable yang nantinya akan di kirimkan ke backend melalui API **updateUserLocation**.
+
+  ```dart
+  double latitude = await LocalStorageService.load("latitude");
+  double longitude = await LocalStorageService.load("longitude");
+
+  await RestApiService.updateUserLocation(
+    latitude: latitude.toString(),
+    longitude: longitude.toString(),
+  );
+  ```
+
+  jika data latitude dan longitude sudah terkirim maka selanjutnya adalah memasukan value isSkip bernilai false ke dalam **Local Storage Service / Local Cache** karena kita telah sukses melakukan proses login. setelah value isSkip berhasil di masukan maka selanjutnya adalah melakukan navigasi ke halaman selanjutnya.
+
+  ```dart
+  LocalStorageService.save("isSkip", false).then((value) {
+    if(value == true){
+      Modular.to.pushReplacementNamed('/auth/authSuccess');
     }
-    ```
+  });
+  ```
 
-    Jika hasilnya adalah true maka proses login akan berlanjut dengan memanggil service login
+  Lalu status tidak sama dengan sukses maka sebuah **FlushBar** akan muncul untuk membuat warning kepada user.
 
-    ```dart
-    authServices.userLogin(context, phoneNumber: phoneController.text, password: passwordController.text);
-    ```
-    di dalam fungsi ini kita melakukan proses login yang membutuhkan phoneController dan passwordController yang nantinya akan di kirim ke dalam field API dan context saat ini untuk memunculkan warning dari **dio**, setelah itu API akan melakukan proses validasi dan pada akhirnya API memberikan result yang akan di gunakan untuk mengecek apakah validasi berhasil atau gagal.
+  ```dart
+  UiUtils.errorMessage(
+    authServices.getMessage()["message"],
+    context
+  );
+  ```
 
-    ```dart
-    if(authServices.getMessage()["status"] == "success") {
-      //jika status sukses
-    } else {
-      //jika status gagal
-    }
-    ```
-    Jika status sama dengan sukses maka proses login akan berlanjut, di sini kita akan menyimpan semua latitude dan longitude dari lokasi user ke dalam variable yang nantinya akan di kirimkan ke backend melalui API **updateUserLocation**.
+  Kemudian jika **phoneController** dan **passwordController** di antara kedua itu ada yang kosong, maka kita munculkan warning juga kepada user.
 
-    ```dart
-    double latitude = await LocalStorageService.load("latitude");
-    double longitude = await LocalStorageService.load("longitude");
+  ```dart
+  UiUtils.errorMessage(
+    "Tolong isi semua form!",
+    context
+  );
+  ```
 
-    await RestApiService.updateUserLocation(
-      latitude: latitude.toString(),
-      longitude: longitude.toString(),
-    );
-    ```
+- #### Register
 
-    jika data latitude dan longitude sudah terkirim maka selanjutnya adalah memasukan value isSkip bernilai false ke dalam **Local Storage Service / Local Cache** karena kita telah sukses melakukan proses login. setelah value isSkip berhasil di masukan maka selanjutnya adalah melakukan navigasi ke halaman selanjutnya.
+  Tidak jauh berbeda dengan login, pada halaman **register_screen.dart** juga terdapat beberapa form yang digunakan untuk menginput data seperti **Nama, Nomor telepon, Password dan Konfirmasi Password** dan juga mempunyai tambahan step yaitu memasukan **kode OTP**, akan tetapi pada App **Mitra j-lantah** mempunyai step tambahan selain **kode OTP** yaitu **melengkapi profil mitra**.
 
-    ```dart
-    LocalStorageService.save("isSkip", false).then((value) {
-      if(value == true){
-        Modular.to.pushReplacementNamed('/auth/authSuccess');
-      }
-    });
-    ```
+  Lalu sebelum proses register dapat berjalan, sebelum itu harus di cek terlebih dahulu apakah value dari password & konfirmasi password sudah sama atau belum.
 
-    Lalu status tidak sama dengan sukses maka sebuah **FlushBar** akan muncul untuk membuat warning kepada user.
+  ```dart
+  if(isPasswordMatch()) {
+    // jika password sama
+  } else {
+    // jika tidak sama
+  }
 
-    ```dart
-    UiUtils.errorMessage(
-      authServices.getMessage()["message"],
-      context
-    );
-    ```
+  bool isPasswordMatch() {
+    return passwordController.text == password2Controller.text
+    ? true : false;
+  }
+  ```
 
-    Kemudian jika **phoneController** dan **passwordController** di antara kedua itu ada yang kosong, maka kita munculkan warning juga kepada user.
+  Jika kedua password sama, maka kita akan melanjutkan proses registernya dengan memanggil API **userRegister**.
 
-    ```dart
-    UiUtils.errorMessage(
-      "Tolong isi semua form!",
-      context
-    );
-    ```
+  ```dart
+  authServices.userRegister(
+    name: nameController.text,
+    password: passwordController.text,
+    phoneNumber: phoneNumberController.text,
+    context: context
+  );
+  ```
 
-  - #### Register
+  fungsi ini digunakan untuk memproses semua inputan dari user yang nantinya akan dikirim ke backend untuk mendapatkan response json dan status nya.
+
+  setelah semua data telah di dapatkan dari backend, maka selanjutnya kita harus mengecek apakah status dari backend sama dengan sukses atau gagal.
+
+  ```dart
+  if (authServices.getMessage()["status"] == "success") {
+    /// jika status sukses
+  } else {
+    /// jika status gagal
+  }
+  ```
+
+  Jika status sama dengan sukses maka proses register akan berlanjut, di sini kita akan menyimpan nomor telepon user yang nantinya dapat di gunakan di halaman berikutnya.
+
+  ```dart
+  LocalStorageService.save("username", phoneNumberController.text);
+  ```
+
+  Lalu selanjutnya kita akan melakukan navigasi ke halaman berikutnya yaitu **otp_screen.dart**.
+
+  ```dart
+  Modular.to.push(
+    MaterialPageRoute(
+      builder: (context) => OtpScreen(
+        phoneNumber: phoneNumberController.text,
+        type: "verif"  //pada class OtpScreen terdapat parameter type yang 
+        ///berfungsi untuk membedakan darimana Halaman OTP dipanggil, apakah 
+        ///itu dari halaman register atau dari forgot password. 
+      ),
+    ),
+  );
+  ```
+
+  Ketika fungsi register terpanggil maka secara otomatis backend akan mengirimkan kode OTP ke nomor yang di daftarkan.
 
 ### Data poin dan liter minyak
 
