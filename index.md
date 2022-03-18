@@ -381,27 +381,59 @@ dan di dalam file ini terdapat beberapa komponen yang sangat penting untuk aktiv
 
   Ketika fungsi register terpanggil maka secara otomatis backend akan mengirimkan kode OTP ke nomor yang di daftarkan.
 
-   
+  
 
 ### Data poin dan liter minyak
 
-test
+Pada saat user melakukan login ataupun register, aplikasi secara bersamaan juga mendapatkan data profile user yang saat ini sedang login dengan menggunakan API **getProfile()** dan juga API **getMyPoin()**.
+
+Di dalam result dari API tersebut kita mendapatkan beberapa data termasuk data Poin dan total liter minyak user.
 
 ```dart
-This is for code block
+RestApiService.getMyPoin().then((value) {
+  poin = value.data["data"][0]["poin"].toString();
+  setState(() {});
+});
 
-void main() {
-
-}
+RestApiService.getProfile().then((value) {
+  print(value["data"]);
+  if (value["statusCode"] == 200) {
+    print(value["data"]["total_liter"]);
+    liter = value["data"]["total_liter"].toString();
+    setState(() {});
+  } else {
+    UiUtils.errorMessage(value["message"], context);
+  }
+});
 ```
 
+Jika semua data yang dibutuhkan telah di dapatkan maka kita akan menampilkan data tersebut ke dalam screen, jika data kosong atau tidak di temukan maka akan dimasukan value 0.
+
 ### Menampilkan data history
+Pada file **order_history_screen.dart** terdapat sebuah fungsi yang digunakan untuk mengambil data history dari backend, data history dari backend ini memiliki dua tipe, pertama ada **On Going** dan satu lagi ada **Completed**.
+
+fungsi untuk pemanggilan data history ini sudah di design agar dapat memasukan parameter tipe status ordernya.
 
 ```dart
-This is for code block
-
-void main() {
-
+Future<void> getAllOrderData(String status, int page) async {
+  if (!mounted) return;
+  await RestApiService.getAllOrderByDate(status, page: page.toString()).then((value) {
+    if (value.statusCode == 200) {
+      if (value.data["status"] == "success") {
+        if (status == "ongoing") {
+          ongoingData = value.data["order"];
+          setState(() {});
+        } else {
+          completedData = value.data["order"];
+          setState(() {});
+        }
+      } else {
+        UiUtils.errorMessage(value.data["message"], context);
+      }
+    } else {
+      UiUtils.errorMessage(value.data["message"], context);
+    }
+  });
 }
 ```
 
