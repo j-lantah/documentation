@@ -454,12 +454,67 @@ Dan masing masing status memiliki pagination nya sendiri supaya tidak bentrok an
 Semua data di inisialisasikan ketika user masuk ke menu History dan juga ketika user melakukan refresh terhadap masing masing tab.
 
 ### Menampilkan data notifikasi
+Untuk menampilkan data notifikasi, dapat di lihat pada file **notification_screen.dart**. Di dalam file ini kita mempunyai fungsi untuk memanggil API dari backend untuk mendapatkan data notifikasi.
 
 ```dart
-This is for code block
+Future<void> getNotification() async {
+  isLoading = true;
+  setState(() {});
+  currentPage = 1;
+  setState(() {});
+  await RestApiService.getNotification(page: currentPage.toString())
+      .then((value) {
+    if (value.statusCode == 200) {
+      notificationModel = NotificationModel.fromJson(value.data);
+      isLoading = false;
+      if (mounted) setState(() {});
 
-void main() {
+      print(notificationModel.data.length);
+    } else {
+      isLoading = false;
+      if (mounted) setState(() {});
+      UiUtils.errorMessage(value.data["message"], context);
+    }
+  });
+}
+```
 
+Dan semua data dari backedn akan kita simpan ke dalam **Model notifikasi** yang nantinya akan di gunakan untuk variable penampil data di dalam UI.
+
+Sama seperti screen order history, screen notifikasi juga memiliki pagination yang sudah di atur di dalam fungsi **onLoading()**.
+
+```dart
+void onLoading() async {
+  currentPage += 1; //Inti utama dalam pagination ada di bagian ini, cukup dengan menambahkan
+  ///variable currentPage dengan value 1 maka nanti api akan memanggil data Notifikasi halaman berikutnya.
+
+  print("current page: " + currentPage.toString());
+  await RestApiService.getNotification(page: currentPage.toString())
+      .then((value) {
+    if (value.statusCode == 200) {
+      print("data: " + value.data.toString());
+      List<NotificationData> newNotificationData =
+          List.from(value.data["data"])
+              .map((e) => NotificationData.fromJson(e))
+              .toList(); /// Lalu disini kita masukan data yang telah di dapat dari API ke dalam List of Model.
+      print("new notification data: $newNotificationData");
+      notificationModel.data.addAll(newNotificationData); ///jika fungsinya adalah onLoading maka kita lakukan penambahan data
+      ///dengan fungsi addAll(data) yang disediakan oleh List.
+      isLoading = false;
+      if (mounted) setState(() {});
+
+      print(notificationModel.data.length);
+      _refreshController.loadComplete(); ///setelah semua proses selesai maka terakhir adalah\
+      ///kita harus mengatur _refreshController agar selesai melakukan loading.
+    } else {
+      isLoading = false;
+      if (mounted) setState(() {});
+      UiUtils.errorMessage(value.data["message"], context); ///Jika hasilnya false maka kita 
+      ///harus menampilkan error message ke pada user
+      _refreshController.loadComplete(); ///setelah semua proses selesai maka terakhir adalah\
+      ///kita harus mengatur _refreshController agar selesai melakukan loading.
+    }
+  });
 }
 ```
 
