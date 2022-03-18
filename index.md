@@ -437,6 +437,22 @@ Future<void> getAllOrderData(String status, int page) async {
 }
 ```
 
+Jadi, jika kita ingin mendapatkan data dengan status **On going** maka kita bisa memanggil fungsi di atas seperti ini.
+
+```dart
+await getAllOrderData("ongoing", currentOngoingPage);
+```
+
+Begitu pula dengan status **Completed**.
+
+```dart
+await getAllOrderData("completed", currentCompletedPage);
+```
+
+Dan masing masing status memiliki pagination nya sendiri supaya tidak bentrok antara pagination yang satu dengan yang lainnya.
+
+Semua data di inisialisasikan ketika user masuk ke menu History dan juga ketika user melakukan refresh terhadap masing masing tab.
+
 ### Menampilkan data notifikasi
 
 ```dart
