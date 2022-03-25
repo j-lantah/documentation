@@ -14,6 +14,11 @@
 - [Menampilkan data history](#menampilkan-data-history)
 - [Menampilkan data notifikasi](#menampilkan-data-notifikasi)
 - [Profile](#profile)
+- [Order](#order)
+  - [Create order](#create-order)
+  - [Find mitra](#find-mitra)
+  - [Konfirmasi Mitra Sampai Lokasi](#konfirmasi-mitra-sampai-lokasi)
+  - [Konfirmasi Liter Minyak](#konfirmasi-liter-minyak)
 
 ### Inisialisasi Flutter
 
@@ -520,10 +525,11 @@ void onLoading() async {
 
 ### Profile
 
-```dart
-This is for code block
+### Order
+Pada flow order, terdapat beberapa file yang akan digunakan, untuk yang pertama ada file **pickup_screen.dart**, file ini digunakan untuk membuat order penjemputan yang bisa di lihat dalam bagian [Create order](#create-order).
 
-void main() {
-
-}
-```
+- #### Create order
+  Pada file **pickup_screen.dart** terdapat
+- #### Find mitra
+- #### Konfirmasi Mitra Sampai Lokasi
+- #### Konfirmasi Liter Minyak
