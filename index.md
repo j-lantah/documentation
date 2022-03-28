@@ -659,8 +659,8 @@ Pada flow order, terdapat beberapa file yang akan digunakan, untuk yang pertama 
   - User melakukan pemilihan lokasi pada tombol **Atur Lokasi Penjemputan**.
   - User memasukan detail alamat pada form yang telah di sediakan.
   - User melakukan input total liter minyak yang akan di pickup.
-  - Terakhir user menekan tombol **Cari Mitra**, di dalam tombol tersebut terdapat sebuah fungsi yang digunakan untuk melakukan pencarian mitra.
-  
+  - Terakhir user menekan tombol **Cari Mitra**, di dalam tombol tersebut terdapat sebuah fungsi yang digunakan untuk melakukan membuat order baru dan mengalihkan ke halaman proses order mitra.
+
     ```dart
     isLoading = true;
     setState(() {});
@@ -730,7 +730,8 @@ Pada flow order, terdapat beberapa file yang akan digunakan, untuk yang pertama 
       });
     }
     ```
-
-- #### Find mitra
-- #### Konfirmasi Mitra Sampai Lokasi
-- #### Konfirmasi Liter Minyak
+  Pada file **proses_pickup_screen.dart** terdapat beberapa langkah order yang nantinya akan terupdate sesuai state yang di dapatkan dari notifikasi ataupun dari backend.
+  - #### Find mitra
+    
+  - #### Konfirmasi Mitra Sampai Lokasi
+  - #### Konfirmasi Liter Minyak
