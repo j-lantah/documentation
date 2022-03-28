@@ -376,17 +376,15 @@ dan di dalam file ini terdapat beberapa komponen yang sangat penting untuk aktiv
     MaterialPageRoute(
       builder: (context) => OtpScreen(
         phoneNumber: phoneNumberController.text,
-        type: "verif"  //pada class OtpScreen terdapat parameter type yang 
-        ///berfungsi untuk membedakan darimana Halaman OTP dipanggil, apakah 
-        ///itu dari halaman register atau dari forgot password. 
+        type: "verif"  //pada class OtpScreen terdapat parameter type yang
+        ///berfungsi untuk membedakan darimana Halaman OTP dipanggil, apakah
+        ///itu dari halaman register atau dari forgot password.
       ),
     ),
   );
   ```
 
   Ketika fungsi register terpanggil maka secara otomatis backend akan mengirimkan kode OTP ke nomor yang di daftarkan.
-
-  
 
 ### Data poin dan liter minyak
 
@@ -415,6 +413,7 @@ RestApiService.getProfile().then((value) {
 Jika semua data yang dibutuhkan telah di dapatkan maka kita akan menampilkan data tersebut ke dalam screen, jika data kosong atau tidak di temukan maka akan dimasukan value 0.
 
 ### Menampilkan data history
+
 Pada file **order_history_screen.dart** terdapat sebuah fungsi yang digunakan untuk mengambil data history dari backend, data history dari backend ini memiliki dua tipe, pertama ada **On Going** dan satu lagi ada **Completed**.
 
 fungsi untuk pemanggilan data history ini sudah di design agar dapat memasukan parameter tipe status ordernya.
@@ -459,6 +458,7 @@ Dan masing masing status memiliki pagination nya sendiri supaya tidak bentrok an
 Semua data di inisialisasikan ketika user masuk ke menu History dan juga ketika user melakukan refresh terhadap masing masing tab.
 
 ### Menampilkan data notifikasi
+
 Untuk menampilkan data notifikasi, dapat di lihat pada file **notification_screen.dart**. Di dalam file ini kita mempunyai fungsi untuk memanggil API dari backend untuk mendapatkan data notifikasi.
 
 ```dart
@@ -514,7 +514,7 @@ void onLoading() async {
     } else {
       isLoading = false;
       if (mounted) setState(() {});
-      UiUtils.errorMessage(value.data["message"], context); ///Jika hasilnya false maka kita 
+      UiUtils.errorMessage(value.data["message"], context); ///Jika hasilnya false maka kita
       ///harus menampilkan error message ke pada user
       _refreshController.loadComplete(); ///setelah semua proses selesai maka terakhir adalah\
       ///kita harus mengatur _refreshController agar selesai melakukan loading.
@@ -526,10 +526,211 @@ void onLoading() async {
 ### Profile
 
 ### Order
+
 Pada flow order, terdapat beberapa file yang akan digunakan, untuk yang pertama ada file **pickup_screen.dart**, file ini digunakan untuk membuat order penjemputan yang bisa di lihat dalam bagian [Create order](#create-order).
 
 - #### Create order
-  Pada file **pickup_screen.dart** terdapat
+
+  Pada file **pickup_screen.dart** terdapat beberapa function.
+
+  Fungsi **getAnnouncement**, fungsi ini digunakan untuk pengumuman dari backend j-lantah.
+
+  ```dart
+  Future<void> getAnnouncement() async {
+    await RestApiService.getLegalText("announcement").then((val) {
+      if(val.statusCode == 200) {
+        announcementText = val.data["data"]["setting_value"];
+        setState(() {
+
+        });
+      } else {
+        UiUtils.errorMessage(val.data["message"], context);
+      }
+    });
+  }
+  ```
+
+  Fungsi **getPricingData**, fungsi ini digunakan untuk mengambil data harga per liter yang telah di simpan di dalam cache, data harga akan terupdate dengan sendirinya ketika terdapat perubahan dari firebase relatime database.
+
+  ```dart
+  void getPricingData() async {
+    pricingData = await LocalStorageService.load("priceData");
+    setState(() {});
+
+    print("pricing data: " + pricingData.toString());
+  }
+  ```
+
+  Fungsi **loadLatLong**, fungsi ini digunakan untuk mengambil data latitude dan longitude yang telah tersimpan di awal saat kita login.
+
+  Di dalam fungsi ini juga kita akan melakukan setup titik lokasi awal pada API google map serta melakukan pengambilan detail lokasi dengan menggunakan **placemark** dan fungsi **getAddressDetails**
+
+  ```dart
+  Future loadLatLong() async {
+    isLoading = true;
+    setState(() {});
+    await LocalStorageService.load("latitude").then((value) async {
+      await LocalStorageService.load("longitude").then((value2) async {
+        latLong = LatLng(value, value2);
+        navigationService.setInitialLocation(latLong!);
+        placemark = await placemarkFromCoordinates(value, value2);
+
+        getAddressDetails("$value,$value2");
+
+        print("placemark: " + placemark[0].toJson().toString());
+
+        isLoading = false;
+        setState(() {});
+      });
+    });
+  }
+  ```
+
+  Fungsi **getAddressDetails**, fungsi ini di gunakan untuk mendapatkan detail dari alamat user, detail alamat di dapatkan dengan memasukan latitude dan longitude ke dalam API google geocoding untuk mendapatkan **place_id** nya, setelah itu kita dapatkan detail alamatnya menggunakan fungsi **getPlaceDetailFromId** dengan mengirimkan **place_id** yang kita dapatkan tadi.
+
+  ```dart
+  void getAddressDetails(String latlong) async {
+    await RestApiService.getAddressDetails(latlong).then((value) {
+      print(value.body);
+      var extracted = json.decode(value.body);
+      if (value.statusCode == 200) {
+        String session = Uuid().v4();
+
+        PlaceApiProvider(session)
+            .getPlaceDetailFromId(extracted["results"][0]["place_id"])
+            .then((value) {
+          addressName = value.businessName;
+
+          setState(() {});
+
+          print("address name: " + addressName);
+        });
+
+        fullAddress = extracted["results"][0]["formatted_address"];
+        print("fullAddress: " + fullAddress);
+        List address = fullAddress.split(", ");
+
+        print(addressName);
+        // addressName = extracted["results"][0][""];
+
+        setState(() {});
+      }
+    });
+  }
+  ```
+
+  Fungsi **getPricing**, digunakan untuk mengkalkulasikan jarak harga minimum atau maximum dengan total liter yang di inputkan oleh user.
+
+  ```dart
+  Future<double> getPricing(double liter) async {
+    double price = 0;
+
+    if (liter >= pricingData[0]["min_range"] &&
+        liter <= pricingData[0]["max_range"]) {
+      price = pricingData[0]["price"].toDouble() * liter;
+    } else if (liter >= pricingData[1]["min_range"] &&
+        liter <= pricingData[1]["max_range"]) {
+      price = pricingData[1]["price"].toDouble() * liter;
+    }
+
+    return price;
+  }
+  ```
+
+  Fungsi **showPinsOnMap**, fungsi ini digunakan untuk menampilkan pin lokasi user di dalam map.
+
+  ```dart
+  void showPinsOnMap() {
+    setState(() {
+      _markers.add(
+        Marker(
+          markerId: MarkerId('sourcePin'),
+          position: navigationService.currentLocation,
+          icon: navigationService.sourceIcon,
+        ),
+      );
+    });
+  }
+  ```
+
+  Semua fungsi di atas di gunakan untuk melakukan proses **Create Order**.
+
+  Flow order: 
+  - User melakukan pemilihan lokasi pada tombol **Atur Lokasi Penjemputan**.
+  - User memasukan detail alamat pada form yang telah di sediakan.
+  - User melakukan input total liter minyak yang akan di pickup.
+  - Terakhir user menekan tombol **Cari Mitra**, di dalam tombol tersebut terdapat sebuah fungsi yang digunakan untuk melakukan pencarian mitra.
+  
+    ```dart
+    isLoading = true;
+    setState(() {});
+    if (literTotal < 1.0) {
+      isLoading = false;
+      setState(() {});
+      UiUtils.errorMessage(
+          "Jumlah liter minimal 1,0", context);
+    } else if (isCanOrder == false) {
+      isLoading = false;
+      setState(() {});
+      UiUtils.errorMessage(
+          "Tidak dapat membuat order, Ada order yang sedang berjalan",
+          context);
+    } else {
+      RestApiService.createNewOrder(
+        literPrice.toInt(),
+        lat: latLong?.latitude.toString(),
+        long: latLong?.longitude.toString(),
+        quantity: literTotal,
+        orderLocation: fullAddress,
+        locationDetails: locationDetailsController.text,
+      ).then((value) {
+        isLoading = false;
+        setState(() {});
+        if (value["statusCode"] == 200) {
+          print(value["data"]);
+
+          LocalStorageService.save(
+            "order_id",
+            value["data"]["data"]["id"],
+          );
+
+          LocalStorageService.save(
+            "order_poin",
+            literPrice,
+          );
+
+          Modular.to.push(
+            MaterialPageRoute(
+              builder: (context) => SuccessPageTemplate(
+                topText: "Order berhasil dibuat",
+                topTextSize: 36.sp,
+                pageToTransition: ProsesPickupScreen(
+                  lat: latLong?.latitude,
+                  long: latLong?.longitude,
+                  liter: literTotal.toString(),
+                  orderId: value["data"]["data"]["id"],
+                  orderNo: value["data"]["data"]
+                      ["order_no"],
+                ),
+                // bottomText:
+                //     "",
+              ),
+            ),
+          );
+        } else {
+          print(value["message"]);
+          for (int i = 0;
+              i < value["message"].data["data"].length;
+              i++) {
+            UiUtils.errorMessage(
+                "${value['message'].data["message"]}: ${value["message"].data["data"][i]["msg"]}",
+                context);
+          }
+        }
+      });
+    }
+    ```
+
 - #### Find mitra
 - #### Konfirmasi Mitra Sampai Lokasi
 - #### Konfirmasi Liter Minyak
