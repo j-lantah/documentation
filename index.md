@@ -825,9 +825,18 @@ Pada flow order, terdapat beberapa file yang akan digunakan, untuk yang pertama 
     }
     ```
 
-    <!-- Jika di temukan Mitra di sekitar lokasi user maka kita akan melakukan pengecekan lagi apakah ada Mitra yang mengambil order pada saat itu.
+    Jika di temukan Mitra di sekitar lokasi user maka semua data mitra akan di masukan ke dalam Model Mitra.
 
-    Jika tidak ada Mitra yang mengambil order maka aplikasi juga akan memunculkan popup. -->
+    ```dart
+    print(value4["data"]);
+
+    mitraModel = MitraModel.fromJson(value4["data"]);
+    setState(() {});
+
+    getOrderResetTimer = Timer(Duration(seconds: 5), () {
+      getOrderData(orderId);
+    });
+    ```
 
   - #### Konfirmasi Mitra Sampai Lokasi
   - #### Konfirmasi Liter Minyak
