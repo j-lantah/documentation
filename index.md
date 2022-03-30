@@ -655,7 +655,8 @@ Pada flow order, terdapat beberapa file yang akan digunakan, untuk yang pertama 
 
   Semua fungsi di atas di gunakan untuk melakukan proses **Create Order**.
 
-  Flow order: 
+  Flow order:
+
   - User melakukan pemilihan lokasi pada tombol **Atur Lokasi Penjemputan**.
   - User memasukan detail alamat pada form yang telah di sediakan.
   - User melakukan input total liter minyak yang akan di pickup.
@@ -730,8 +731,103 @@ Pada flow order, terdapat beberapa file yang akan digunakan, untuk yang pertama 
       });
     }
     ```
-  Pada file **proses_pickup_screen.dart** terdapat beberapa langkah order yang nantinya akan terupdate sesuai state yang di dapatkan dari notifikasi ataupun dari backend.
+
+    Pada file **proses_pickup_screen.dart** terdapat beberapa langkah order yang nantinya akan terupdate sesuai state yang di dapatkan dari notifikasi ataupun dari backend.
+
   - #### Find mitra
-    
+
+    **findMitra** di sini berfungsi untuk memanggil proses pencarian mitra.
+
+    bagian pertama di dalam fungsi **findMitra** digunakan untuk mengatur state dari order yang sedang berjalan. Pada code di bawah bisa kita lihat state pertama yang aktif atau true adalah searching yang berarti kita sedang dalam state mencari mitra.
+
+    ```dart
+    state.addAll({
+      "searching": true,
+      "found": false,
+      "pickedup": false,
+      "sending": false,
+      "done": false,
+    });
+    ```
+
+    Lalu selanjutnya ada pemanggilan API untuk mencari mitra, API ini memiliki beberapa parameter seperti **Order id, latitude, longitude, dan juga radius**
+
+    ```dart
+    await RestApiService.findMitra(
+      orderId: value,
+      lat: value2.toString(),
+      long: value3.toString(),
+      radius: radius,
+    )
+    ```
+
+    Fungsi di atas akan mengembalikan nilai response dari backend.
+
+    dari response yang kita dapat akan ada nilai statusCode, jika status code sama dengan 200 maka kita akan melanjutkan proses pencarian mitra.
+
+    Jika proses pencarian mitra berlanjut, maka selanjutnya kita akan periksa apakah radius lebih dari sama dengan 10000.
+
+    Jika lebih dari sama dengan 10000 maka aplikasi akan memunculkan popup yang akan memberitahu bahwa tidak ada Mitra terdeteksi di sekitar wilayah User.
+
+    ```dart
+    if (radius >= 10000) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (thisContext) => Dialog(
+          backgroundColor: Colors.transparent,
+          child: AppDialogs.textPromptDialog(
+            "Cari Lagi",
+            "Batal",
+            "Maaf, belum ada mitra yang ambil Order Anda",
+            context,
+            onYes: () {
+              radius = 5000;
+              Modular.to.pop(thisContext);
+              findMitra(widget.orderId, lat, long);
+            },
+            onDenied: () {
+              RestApiService.cancelOrder(
+                orderId: orderId,
+                reason: "Tidak mendapatkan Mitra",
+              ).then((value) async {
+                if (value.statusCode == 200) {
+                  await LocalStorageService.save("can-order", true);
+                  Modular.to.popUntil(ModalRoute.withName("/home/"));
+                } else {
+                  UiUtils.errorMessage(value.data["message"], context);
+                }
+              });
+            },
+          ),
+        ),
+      );
+    }
+    ```
+
+    **Catatan: Radius akan bertambah sebanyak 2000 jika dalam 5 detik tidak di temukan mitra sampai akhirnya menyentuh angka 10000.**
+
+    ```dart
+    if (value4["data"]["status"] == "failed") {
+      myTimer = Timer(const Duration(seconds: 5), () {
+        timerStacked += 5;
+        if (timerStacked >= 30) {
+          radius += 2000;
+        }
+
+        print("timerStacked: " + timerStacked.toString());
+
+        findMitra(value, value2, value3);
+      });
+
+      isShowDriverContainer = false;
+      if (mounted) setState(() {});
+    }
+    ```
+
+    <!-- Jika di temukan Mitra di sekitar lokasi user maka kita akan melakukan pengecekan lagi apakah ada Mitra yang mengambil order pada saat itu.
+
+    Jika tidak ada Mitra yang mengambil order maka aplikasi juga akan memunculkan popup. -->
+
   - #### Konfirmasi Mitra Sampai Lokasi
   - #### Konfirmasi Liter Minyak
