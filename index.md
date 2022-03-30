@@ -7,6 +7,13 @@
   - [Notification Service](#notification-service)
   - [Location Service](#location-service)
 - [Komponen Modular](#modular-basic)
+
+### Views
+
+### Models
+
+### Controllers
+
 - [Autentikasi](#autentikasi)
   - [Register](#register)
   - [Login](#login)
@@ -825,7 +832,7 @@ Pada flow order, terdapat beberapa file yang akan digunakan, untuk yang pertama 
     }
     ```
 
-    Jika di temukan Mitra di sekitar lokasi user maka semua data mitra akan di masukan ke dalam Model Mitra.
+    Jika di temukan Mitra di sekitar lokasi user maka semua data mitra akan di masukan ke dalam Model Mitra dan akan langsung mengambil data order dengan memanggil fungsi **getOrderData** untuk melakukan pengecekan status lebih lanjut.
 
     ```dart
     print(value4["data"]);
@@ -838,5 +845,169 @@ Pada flow order, terdapat beberapa file yang akan digunakan, untuk yang pertama 
     });
     ```
 
+    **Catatan: Semua state kecuali find_mitra akan menyimpan sebuah value can_order bernilai true supaya nanti bisa membuat order lagi**
+
   - #### Konfirmasi Mitra Sampai Lokasi
+
+    Pada saat User mendapatkan Mitra maka nanti status order akan berubah menjadi **waiting_mitra**, pada saat status tersebut aktif, sebuah tombol akan muncul untuk mengkonfirmasi apakah Mitra sudah sampai di tempat User atau belum, lalu ada juga operasi logika untuk mengecek apakah myTimer tidak sama dengan null dan mitraSearchTimer tidak sama dengan null, jika iya maka kedua timer tersebut akan di hentikan.
+
+    Dan juga semua data mitra akan di simpan kedalam variable **driverData** supaya nanti dapat di tampilkan ke dalam UI dengan menggunakan fungsi **setMitraLocation()**.
+
+    Selain itu kita juga akan menampilkan tombol batal supaya User dapat membatalkan order dengan alasan yang telah tersedia.
+
+    ```dart
+    if (myTimer != null) {
+      myTimer!.cancel();
+    }
+    if (mitraSearchTimer != null) {
+      mitraSearchTimer!.cancel();
+    }
+    LocalStorageService.save("can-order", true);
+    mitraUsername = value.data["data_mitra"][0]["phone_mitra"];
+    state.addAll({"found": true});
+    isShowButton = true;
+    driverData = value.data["data_mitra"][0];
+
+    isShowCancelButton = true;
+
+    print("driver data" + driverData.toString());
+
+    setMitraLocation();
+    ```
+
+    Setelah semua itu selesai di eksekusi maka selanjutnya user akan menekan tombol **Sudah Sampai**, di dalam tombol tersebut terdapat sebuah fungsi yang akan mengeksekusi API **konfirmasi sampai**, proses pertama aplikasi akan memunculkan popup untuk menanyakan apakah Mitra sudah sesuai dengan data yang ada di UI. 
+    
+    Jika Mitra sesuai dengan data yang ada di UI maka aplikasi akan mengeksekusi API **konfirmasi sampai**, jika tidak maka popup lainnya muncul untuk menanyakan apakah user ingin mencari Mitra baru atau membatalkan order yang sedang berjalan.
+
+    ```dart
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (thisContext) {
+        isLoading = false;
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: AppDialogs.textPromptDialog(
+            "Terima",
+            "Tolak",
+            "Apakah Mitra yang datang sesuai dengan data Mitra?",
+            context,
+            onYes: () {
+              RestApiService.confirmArrived(
+                orderId: orderId,
+              ).then(
+                (value) {
+                  if (value.statusCode == 200) {
+                    if (value.data["status"] == "success") {
+                      Navigator.pop(thisContext);
+                      getOrderData(orderId);
+
+                      isLoading = false;
+                      setState(() {});
+                    } else {
+                      UiUtils.errorMessage(
+                          value.data["message"], context);
+                    }
+                  } else {
+                    UiUtils.errorMessage(value.data["message"], context);
+                  }
+                },
+              );
+            },
+            onDenied: () {
+              Navigator.pop(thisContext);
+              String selectedValue = "0";
+              String message = "";
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (thisSecondContext) {
+                  String reason;
+                  return StatefulBuilder(
+                    builder: (
+                      context,
+                      thisSetState,
+                    ) =>
+                        AppDialogs.rejectMitraDialog(
+                      context,
+                      message: (value) {
+                        print(value);
+                        message = value;
+                        reasonText = value;
+                      },
+                      onSelected: (value) {
+                        selectedValue = value;
+                        thisSetState(
+                          () {},
+                        );
+                      },
+                      onReject: () {
+                        Navigator.pop(thisSecondContext);
+                        isLoading = false;
+                        setState(() {});
+                      },
+                      onAccept: () {
+                        print("test");
+                        RestApiService.rejectMitra(
+                          orderId: orderId,
+                          reason: message,
+                        ).then((value) {
+                          print(value.data);
+                          if (value.statusCode == 200) {
+                            if (value.data["status"] == "success") {
+                              Navigator.pop(thisSecondContext);
+                              isLoading = false;
+                              setState(() {});
+                              showDialog(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (thisContext) => Dialog(
+                                  backgroundColor: Colors.transparent,
+                                  child: AppDialogs.textPromptDialog(
+                                    "Cari Lagi",
+                                    "Batal",
+                                    "Apakah Anda ingin mencari mitra lain?",
+                                    context,
+                                    onYes: () {
+                                      radius = 5000;
+                                      Modular.to.pop(thisContext);
+                                      findMitra(
+                                          widget.orderId, lat, long);
+                                    },
+                                    onDenied: () {
+                                      RestApiService.cancelOrder(
+                                        orderId: orderId,
+                                        reason: "Dibatalkan oleh user",
+                                      ).then((value) {
+                                        if (value.statusCode == 200) {
+                                          getOrderData(orderId);
+                                          // Modular.to.popUntil(ModalRoute.withName("/home/"));
+                                        } else {
+                                          UiUtils.errorMessage(
+                                              value.data["message"],
+                                              context);
+                                        }
+                                      });
+                                    },
+                                  ),
+                                ),
+                              );
+                            }
+                          }
+                        });
+                      },
+                      acceptButtonText: "Tolak mitra",
+                      selectedValue: selectedValue,
+                      rejectionList: reasonData,
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        );
+      },
+    );
+    ```
+
   - #### Konfirmasi Liter Minyak
