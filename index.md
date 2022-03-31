@@ -59,9 +59,9 @@ setelah command di atas berhasil di eksekusi maka selanjutnya adalah menjalankan
 flutter run
 ```
 
-jika project berhasil di jalankan maka nanti kita dapat melakukan refresh ataupun restart aplikasi dengan menekan tombol "r" untuk refresh dan "R" untuk restart, tekan tombol tersebut di dalam command line / terminal yang telah di gunakan untuk menjalankan aplikasi j-lantah user / mitra j-lantah
+jika project berhasil di jalankan maka nanti kita dapat melakukan refresh ataupun restart aplikasi dengan menekan tombol "r" untuk refresh dan "R" untuk restart, tekan tombol tersebut di dalam command line / terminal yang telah di gunakan untuk menjalankan aplikasi j-lantah user / mitra j-lantah.
 
-Selalu letakan baris kode berikut di dalam fungsi **main** di awal baris
+Selalu letakan baris kode berikut di dalam fungsi **main** di awal baris.
 
 ```dart
 void main() async {
@@ -253,6 +253,72 @@ Modular.to.pop();
 ```
 
 ## Views
+- ### Splashscreen
+
+  Splashscreen adalah view untuk melakukan semua inisialisasi, file nya **splashscreen.dart**.
+
+  Komponen UInya sangat sedikit, hanya perlu container dengan height dan width sesuai ukuran layar device lalu dengan logo j-lantah atau j-lantah Mitra di tengahnya.
+
+  ```dart
+  import 'package:firebase_messaging/firebase_messaging.dart';
+  import 'package:flutter/material.dart';
+  import 'package:flutter_modular/flutter_modular.dart';
+  import 'package:jlantah/core/dashboard/dashboard_components/home_components/order_components/proses_pickup_screen.dart';
+  import 'package:jlantah/core/dashboard/dashboard_screen.dart';
+  import 'package:jlantah/utils/services/firebase_service.dart';
+  import 'package:jlantah/utils/services/local_storage_service.dart';
+  import 'package:location/location.dart';
+
+  class SplashScreen extends StatefulWidget {
+    const SplashScreen({Key? key}) : super(key: key);
+
+    @override
+    _SplashScreenState createState() => _SplashScreenState();
+  }
+
+  class _SplashScreenState extends State<SplashScreen> {
+    final int duration = 2;
+    Location location = Location();
+    late bool _serviceEnabled;
+    late PermissionStatus _permissionGranted;
+    late LocationData _locationData;
+
+    @override
+    void initState() {
+
+      locationService();
+
+      Future.delayed(Duration(seconds: duration), () {
+        LocalStorageService.check("token").then((value) {
+          if (value == true) {
+            Modular.to.popAndPushNamed('/home/');
+          } else {
+            Modular.to.popAndPushNamed('/auth/');
+          }
+        });
+      });
+      super.initState();
+    }
+
+    void saveLatLong(double latitude, double longitude) async {
+      //lihat di bagian controller
+    }
+
+    Future locationService() async {
+      //lihat di bagian controller
+    }
+
+    @override
+    Widget build(BuildContext context) {
+      return Scaffold(
+        backgroundColor: Color(0xffFFFACD),
+        body: Center(
+          child: Image.asset("assets/images/jlantah-icon.png"),
+        ),
+      );
+    }
+  }
+  ```
 
 ## Models
 
