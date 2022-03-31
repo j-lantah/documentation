@@ -1009,5 +1009,59 @@ Pada flow order, terdapat beberapa file yang akan digunakan, untuk yang pertama 
       },
     );
     ```
-
   - #### Konfirmasi Liter Minyak
+    Ketika status order sudah berada di **waiting_confirmation** maka terlebih dahulu app Mitra akan melakukan proses konfirmasi apakah minyak sudah sesuai aplikasi, setelah proses konfirmasi dari Mitra selesai maka app User akan memunculkan tombol **konfirmasi** yang ditujukan untuk memunculkan popup konfirmasi apakah setuju dengan Mitra atau tidak.
+
+    ```dart
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (myContext) => AppDialogs.confirmOrder(myContext,
+          richText: RichText(
+            textAlign: TextAlign.center,
+            text: TextSpan(
+              children: [
+                TextSpan(
+                    text: "Jumlah Minyak Anda ",
+                    style: TextStyle(color: Colors.black)),
+                TextSpan(
+                  text: "$liter Liter ",
+                  style: TextStyle(
+                    color: AppColors.orangeAccent,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                TextSpan(
+                    text: "Poin Anda ",
+                    style: TextStyle(color: Colors.black)),
+                TextSpan(
+                  text: "$poin",
+                  style: TextStyle(
+                    color: AppColors.orangeAccent,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          acceptButtonText: "Konfirmasi", onAccept: () {
+        isLoading = true;
+        isConfirmed = true;
+        setState(() {});
+        RestApiService.quantityConfirm(orderId: orderId).then((thisValue) {
+          print(thisValue.data);
+          if (thisValue.statusCode == 200) {
+            getOrderData(orderId);
+            isShowButton = false;
+            isShowCancelButton = false;
+            isShowConfirmButton = false;
+            isLoading = false;
+            setState(() {});
+            Navigator.pop(myContext);
+          }
+        });
+      }),
+    );
+    ```
+
+
