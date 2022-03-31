@@ -6,11 +6,25 @@
 - [Inisialisasi firebase service](#inisialisasi-firebase-service)
   - [Notification Service](#notification-service)
   - [Location Service](#location-service)
-- [Komponen Modular](#modular-basic)
+- [Komponen Modular](#komponen-modular)
 
 ### Views
 
+- [Splashscreen](#splashscreen)
+- [Auth Screen](#auth-screen)
+  - [Register Screen](#register-screen)
+  - [Login Screen](#login-screen)
+- [Home](#home)
+- [Order Screen](#order-screen)
+- [Redeem Poin](#redeem-poin)
+
 ### Models
+
+- [Register Model](#register-model)
+- [Mitra Model](#mitra-model)
+- [My Poin Model](#my-poin-model)
+- [Profile Model](#profile-model)
+- [Notification Model](#notification-model)
 
 ### Controllers
 
@@ -237,6 +251,529 @@ Modular.to.pop();
 ///fungsi ini berguna untuk melakukan aksi kembali ke screen sebelumnya.
 
 ```
+
+## Views
+
+## Models
+
+- ### Register Model
+
+  Model ini di gunakan untuk melakukan serialisasi terhadap data yang di dapat ketika melakukan Register. data yang di dapat antara lain yaitu **id, nama, password, active, kode**. Dan password yang dimaksud disini adalah password untuk melakukan verifikasi nomor telepon beserta kode juga.
+
+  ```dart
+  class RegisterModel {
+    String? id;
+    String? nama;
+    String? password;
+    int? active;
+    String? kode;
+
+    RegisterModel({this.id, this.nama, this.password, this.active, this.kode});
+
+    RegisterModel.fromJson(Map<String, dynamic> json) {
+      id = json['id'];
+      nama = json['nama'];
+      password = json['password'];
+      active = json['active'];
+      kode = json['kode'];
+    }
+
+    Map<String, dynamic> toJson() {
+      final Map<String, dynamic> data = new Map<String, dynamic>();
+      data['id'] = this.id;
+      data['nama'] = this.nama;
+      data['password'] = this.password;
+      data['active'] = this.active;
+      data['kode'] = this.kode;
+      return data;
+    }
+
+    @override
+    String toString() {
+      return "id: $id, nama: $nama, active: $active, kode: $kode";
+    }
+  }
+  ```
+
+- ### Mitra Model
+
+  Model ini di gunakan untuk melakukan serialisasi terhadap data yang di dapat ketika User mencari mitra di daerah sekitarnya. data yang di dapat antara lain yaitu **id, latitude, longitude, newOrder, orderId**.
+
+  ```dart
+  class MitraModel {
+    MitraModel({
+      required this.data,
+    });
+    late final List<Data> data;
+
+    MitraModel.fromJson(Map<String, dynamic> json) {
+      data = List.from(json['data']).map((e) => Data.fromJson(e)).toList();
+    }
+
+    Map<String, dynamic> toJson() {
+      final _data = <String, dynamic>{};
+      _data['data'] = data.map((e) => e.toJson()).toList();
+      return _data;
+    }
+  }
+
+  class Data {
+    Data({
+      required this.id,
+      required this.latitude,
+      required this.longitude,
+      required this.newOrder,
+      required this.orderId,
+    });
+    late final String id;
+    late final String latitude;
+    late final String longitude;
+    late final String newOrder;
+    late final String orderId;
+
+    Data.fromJson(Map<String, dynamic> json) {
+      id = json['id'];
+      latitude = json['latitude'];
+      longitude = json['longitude'];
+      newOrder = json['new_order'];
+      orderId = json['order_id'];
+    }
+
+    Map<String, dynamic> toJson() {
+      final _data = <String, dynamic>{};
+      _data['id'] = id;
+      _data['latitude'] = latitude;
+      _data['longitude'] = longitude;
+      _data['new_order'] = newOrder;
+      _data['order_id'] = orderId;
+      return _data;
+    }
+  }
+  ```
+
+- ### My Poin Model
+
+  Model ini di gunakan untuk melakukan serialisasi terhadap data yang di dapat ketika User akan melakukan penarikan poin. data yang di dapat antara lain yaitu **userId, poin**
+
+  ```dart
+  class MyPoinModel {
+    MyPoinModel({
+      required this.data,
+    });
+    late final List<Data> data;
+
+    MyPoinModel.fromJson(Map<String, dynamic> json) {
+      data = List.from(json['data']).map((e) => Data.fromJson(e)).toList();
+    }
+
+    Map<String, dynamic> toJson() {
+      final _data = <String, dynamic>{};
+      _data['data'] = data.map((e) => e.toJson()).toList();
+      return _data;
+    }
+  }
+
+  class Data {
+    Data({
+      required this.userId,
+      required this.poin,
+    });
+    late final String userId;
+    late final int poin;
+
+    Data.fromJson(Map<String, dynamic> json) {
+      userId = json['user_id'];
+      poin = json['poin'];
+    }
+
+    Map<String, dynamic> toJson() {
+      final _data = <String, dynamic>{};
+      _data['user_id'] = userId;
+      _data['poin'] = poin;
+      return _data;
+    }
+  }
+  ```
+
+- ### Profile Model
+
+  Model ini di gunakan untuk melakukan serialisasi terhadap data yang di dapat untuk menampilkan semua detail dari user yang sedang login.
+
+  ```dart
+  class ProfileModel {
+    String? id;
+    String? nama;
+    String? username;
+    String? email;
+    String? phone;
+    String? jenisKelamin;
+    String? usia;
+    String? nik;
+    String? provider;
+    String? companyId;
+    String? tempatLahir;
+    String? tanggalLahir;
+    String? role;
+    int? levelUser;
+    late String avatar;
+    List<ProfileAlamat>? alamat;
+    List<ProfileBank>? bank;
+    List<Biodata>? biodata;
+    List? skills;
+    List<Dokumen>? dokumen;
+    int? agreement;
+    List<Perusahaan>? perusahaan;
+
+    ProfileModel(
+        {this.id,
+        this.nama,
+        this.username,
+        this.email,
+        this.phone,
+        this.jenisKelamin,
+        this.usia,
+        this.provider,
+        this.companyId,
+        this.tempatLahir,
+        this.tanggalLahir,
+        this.role,
+        this.levelUser,
+        this.avatar = "",
+        this.alamat,
+        this.bank,
+        this.nik,
+        this.biodata,
+        this.skills,
+        this.dokumen,
+        this.agreement,
+        this.perusahaan});
+
+    ProfileModel.fromJson(Map<String, dynamic> json) {
+      id = json['id'];
+      nama = json['nama'];
+      username = json['username'];
+      email = json['email'];
+      nik = json['nik'];
+      phone = json['phone'];
+      jenisKelamin = json['jenis_kelamin'];
+      usia = json['usia'];
+      provider = json['provider'];
+      companyId = json['company_id'];
+      tempatLahir = json['tempat_lahir'];
+      tanggalLahir = json['tanggal_lahir'];
+      role = json['role'];
+      levelUser = json['level_user'];
+      avatar = json['avatar'] ?? "";
+      if (json['perusahaan'] != null) {
+        perusahaan = <Perusahaan>[];
+        json['perusahaan'].forEach((v) {
+          perusahaan?.add(Perusahaan.fromJson(v));
+        });
+      }
+      if (json['alamat'] != null) {
+        alamat = <ProfileAlamat>[];
+        json['alamat'].forEach((v) {
+          alamat?.add(ProfileAlamat.fromJson(v));
+        });
+      }
+      if (json['bank'] != null) {
+        bank = <ProfileBank>[];
+        json['bank'].forEach((v) {
+          bank?.add(ProfileBank.fromJson(v));
+        });
+      }
+      if (json['biodata'] != null) {
+        biodata = [];
+        json['biodata'].forEach((v) {
+          biodata!.add(Biodata.fromJson(v));
+        });
+      }
+      if (json['skills'] != null) {
+        skills = json['skills'];
+      }
+      if (json['dokumen'] != null) {
+        dokumen = [];
+        json['dokumen'].forEach((v) {
+          dokumen!.add(Dokumen.fromJson(v));
+        });
+      }
+      agreement = json['agreement'];
+    }
+
+    Map<String, dynamic> toJson() {
+      final Map<String, dynamic> data = <String, dynamic>{};
+      data['id'] = id;
+      data['nama'] = nama;
+      data['username'] = username;
+      data['nik'] = nik;
+      data['email'] = email;
+      data['phone'] = phone;
+      data['jenis_kelamin'] = jenisKelamin;
+      data['usia'] = usia;
+      data['provider'] = provider;
+      data['company_id'] = companyId;
+      data['tempat_lahir'] = tempatLahir;
+      data['tanggal_lahir'] = tanggalLahir;
+      data['role'] = role;
+      data['level_user'] = levelUser;
+      data['avatar'] = avatar;
+      if (alamat != null) {
+        data['alamat'] = alamat!.map((v) => v.toJson()).toList();
+      }
+      if (bank != null) {
+        data['bank'] = bank!.map((v) => v.toJson()).toList();
+      }
+      if (biodata != null) {
+        data['biodata'] = biodata!.map((v) => v.toJson()).toList();
+      }
+      if (skills != null) {
+        data['skills'] = skills!.map((v) => v.toJson()).toList();
+      }
+      if (dokumen != null) {
+        data['dokumen'] = dokumen!.map((v) => v.toJson()).toList();
+      }
+      data['agreement'] = agreement;
+      return data;
+    }
+  }
+
+  class ProfileAlamat {
+    bool? isDefault;
+    String? sId;
+    String? alamat;
+    String? namaAlamat;
+    String? locationDetail;
+    String? propinsi;
+    String? propinsiKode;
+    String? kelurahan;
+    String? kelurahanKode;
+    String? kecamatan;
+    String? kecamatanKode;
+    String? kota;
+    String? kotaKode;
+    String? latitude;
+    String? longitude;
+
+    ProfileAlamat(
+        {this.isDefault,
+        this.sId,
+        this.alamat,
+        this.namaAlamat,
+        this.locationDetail,
+        this.kelurahan,
+        this.kelurahanKode,
+        this.kecamatan,
+        this.kecamatanKode,
+        this.propinsi,
+        this.propinsiKode,
+        this.kota,
+        this.kotaKode,
+        this.latitude,
+        this.longitude});
+
+    ProfileAlamat.fromJson(Map<String, dynamic> json) {
+      isDefault = json['is_default'];
+      sId = json['_id'];
+      alamat = json['alamat'];
+      namaAlamat = json['nama_alamat'];
+      locationDetail = json['location_detail'];
+      kelurahan = json['kelurahan'];
+      kelurahanKode = json['kelurahan_kode'];
+      kecamatan = json['kecamatan'];
+      kecamatanKode = json['kecamatan_kode'];
+      kota = json['kota'];
+      kotaKode = json['kota_kode'];
+      propinsi = json['provinsi'];
+      propinsiKode = json['provinsi_kode'];
+      latitude = json['latitude'];
+      longitude = json['longitude'];
+    }
+
+    Map<String, dynamic> toJson() {
+      final Map<String, dynamic> data = <String, dynamic>{};
+      data['is_default'] = isDefault;
+      data['_id'] = sId;
+      data['alamat'] = alamat;
+      data['nama_alamat'] = namaAlamat;
+      data['location_detail'] = locationDetail;
+      data['kelurahan'] = kelurahan;
+      data['kelurahan_kode'] = kelurahanKode;
+      data['kecamatan'] = kecamatan;
+      data['kecamatan_kode'] = kecamatanKode;
+      data['kota'] = kota;
+      data['kota_kode'] = kotaKode;
+      data['propinsi'] = propinsi;
+      data['propinsi_kode'] = propinsiKode;
+      data['latitude'] = latitude;
+      data['longitude'] = longitude;
+      return data;
+    }
+  }
+
+  class ProfileBank {
+    String? sId;
+    String? bankId;
+    String? bankName;
+    String? bankAccount;
+    String? bankAccountName;
+    String? bankCode;
+    String? tautan;
+    String? fileTabungan;
+
+    ProfileBank(
+        {this.sId,
+        this.bankId,
+        this.bankName,
+        this.bankAccount,
+        this.bankAccountName,
+        this.tautan,
+        this.bankCode,
+        this.fileTabungan});
+
+    ProfileBank.fromJson(Map<String, dynamic> json) {
+      sId = json['_id'];
+      bankId = json['bank_id'];
+      bankName = json['bank_name'];
+      bankAccount = json['bank_account'];
+      bankAccountName = json['bank_account_name'];
+      bankCode = json['bank_code'];
+      tautan = json['tautan'];
+      fileTabungan = json['file_tabungan'];
+    }
+
+    Map<String, dynamic> toJson() {
+      final Map<String, dynamic> data = <String, dynamic>{};
+      data['_id'] = sId;
+      data['bank_id'] = bankId;
+      data['bank_name'] = bankName;
+      data['bank_account'] = bankAccount;
+      data['bank_account_name'] = bankAccountName;
+      data['bank_code'] = bankCode;
+      data['tautan'] = tautan;
+      data['file_tabungan'] = fileTabungan;
+      return data;
+    }
+  }
+
+  class Biodata {
+    String? sId;
+    String? fileEktp;
+    String? fileSelfieEktp;
+    String? tautan;
+
+    Biodata({this.sId, this.fileEktp, this.fileSelfieEktp, this.tautan});
+
+    Biodata.fromJson(Map<String, dynamic> json) {
+      sId = json['_id'];
+      fileEktp = json['file_ektp'];
+      fileSelfieEktp = json['file_selfie_ektp'];
+      tautan = json['tautan'];
+    }
+
+    Map<String, dynamic> toJson() {
+      final Map<String, dynamic> data = <String, dynamic>{};
+      data['_id'] = sId;
+      data['file_ektp'] = fileEktp;
+      data['file_selfie_ektp'] = fileSelfieEktp;
+      data['tautan'] = tautan;
+      return data;
+    }
+  }
+
+  class Dokumen {
+    String? sId;
+    String? tautan;
+
+    Dokumen({this.sId, this.tautan});
+
+    Dokumen.fromJson(Map<String, dynamic> json) {
+      sId = json['_id'];
+      tautan = json['tautan'];
+    }
+
+    Map<String, dynamic> toJson() {
+      final Map<String, dynamic> data = <String, dynamic>{};
+      data['_id'] = sId;
+      data['tautan'] = tautan;
+      return data;
+    }
+  }
+  ```
+
+- ### Notification Model
+
+  Model ini di gunakan untuk melakukan serialisasi terhadap data yang di dapat ketika User membuka screen Notifikasi. data yang di dapat antara lain yaitu **id, isRead, userId, role, type, orderId, title, message, createdAt**
+
+  ```dart
+  class NotificationModel {
+    NotificationModel({
+      required this.data,
+    });
+    late final List<NotificationData> data;
+
+    NotificationModel.fromJson(Map<String, dynamic> json) {
+      data = List.from(json['data']).map((e) => NotificationData.fromJson(e)).toList();
+    }
+
+    Map<String, dynamic> toJson() {
+      final _data = <String, dynamic>{};
+      _data['data'] = data.map((e) => e.toJson()).toList();
+      return _data;
+    }
+  }
+
+  class NotificationData {
+    NotificationData({
+      required this.id,
+      required this.isRead,
+      required this.userId,
+      required this.role,
+      required this.type,
+      required this.orderId,
+      required this.title,
+      required this.message,
+      required this.createdAt,
+    });
+    late final String id;
+    late final bool isRead;
+    late final String userId;
+    late final String role;
+    late final String type;
+    late final String orderId;
+    late final String title;
+    late final String message;
+    late final String createdAt;
+
+    NotificationData.fromJson(Map<String, dynamic> json) {
+      id = json['id'];
+      isRead = json['is_read'];
+      userId = json['user_id'];
+      role = json['role'];
+      type = json['type'];
+      orderId = json.containsKey("order_id") ? json['order_id'] : "";
+      title = json['title'];
+      message = json['message'];
+      createdAt = json['created_at'];
+    }
+
+    Map<String, dynamic> toJson() {
+      final _data = <String, dynamic>{};
+      _data['id'] = id;
+      _data['is_read'] = isRead;
+      _data['user_id'] = userId;
+      _data['role'] = role;
+      _data['type'] = type;
+      _data['order_id'] = orderId;
+      _data['title'] = title;
+      _data['message'] = message;
+      _data['created_at'] = createdAt;
+      return _data;
+    }
+  }
+
+  ```
+
+## Controllers
 
 ### Autentikasi
 
@@ -875,8 +1412,8 @@ Pada flow order, terdapat beberapa file yang akan digunakan, untuk yang pertama 
     setMitraLocation();
     ```
 
-    Setelah semua itu selesai di eksekusi maka selanjutnya user akan menekan tombol **Sudah Sampai**, di dalam tombol tersebut terdapat sebuah fungsi yang akan mengeksekusi API **konfirmasi sampai**, proses pertama aplikasi akan memunculkan popup untuk menanyakan apakah Mitra sudah sesuai dengan data yang ada di UI. 
-    
+    Setelah semua itu selesai di eksekusi maka selanjutnya user akan menekan tombol **Sudah Sampai**, di dalam tombol tersebut terdapat sebuah fungsi yang akan mengeksekusi API **konfirmasi sampai**, proses pertama aplikasi akan memunculkan popup untuk menanyakan apakah Mitra sudah sesuai dengan data yang ada di UI.
+
     Jika Mitra sesuai dengan data yang ada di UI maka aplikasi akan mengeksekusi API **konfirmasi sampai**, jika tidak maka popup lainnya muncul untuk menanyakan apakah user ingin mencari Mitra baru atau membatalkan order yang sedang berjalan.
 
     ```dart
@@ -1009,7 +1546,9 @@ Pada flow order, terdapat beberapa file yang akan digunakan, untuk yang pertama 
       },
     );
     ```
+
   - #### Konfirmasi Liter Minyak
+
     Ketika status order sudah berada di **waiting_confirmation** maka terlebih dahulu app Mitra akan melakukan proses konfirmasi apakah minyak sudah sesuai aplikasi, setelah proses konfirmasi dari Mitra selesai maka app User akan memunculkan tombol **konfirmasi** yang ditujukan untuk memunculkan popup konfirmasi apakah setuju dengan Mitra atau tidak.
 
     ```dart
@@ -1063,5 +1602,3 @@ Pada flow order, terdapat beberapa file yang akan digunakan, untuk yang pertama 
       }),
     );
     ```
-
-
